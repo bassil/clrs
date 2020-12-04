@@ -1,3 +1,4 @@
+import math
 import sys
 
 def max_subarray(A):
@@ -5,6 +6,10 @@ def max_subarray(A):
 	subarray of A whose values have the largest sum
 	brute force: try every pair of dates 
 	where the sell date is after the buy date
+
+	Args:
+
+		A - list - list of integers
 	"""
 	
 	max_sum = 0
@@ -20,8 +25,16 @@ def max_subarray(A):
 	return A[best_buy_date: best_sell_date], max_sum
 
 def max_crossing_subarray(A, low, mid, high):
-	"""return indices of a maximum subarray that crosses the middle of A, e.g., 
-	A[i..mid], A[mid+1..j], where low <= i <= mid <= j <= high"""
+	"""return sum and indices of a maximum subarray that crosses the middle of A, e.g., 
+	A[i..mid], A[mid+1..j], where low <= i <= mid <= j <= high
+	
+	Args:
+
+		A - list - list of integers
+		low - int - index of first element
+		mid - int - index of middle index (floor((low + high) / 2))
+		high - int - index of last element
+	"""
 
 	left_sum = -(sys.maxsize)
 	crossing_sum = 0
@@ -47,13 +60,52 @@ def max_crossing_subarray(A, low, mid, high):
 
 	return min_left, max_right, left_sum + right_sum
 
+def find_maximum_subarray(A, low, high):
+	"""return sum and indices of a maximum subarray of A, a nonempty contiguous 
+	subarray of A whose values have the largest sum
+	divide and conquer: find max left subarray, max right subarray, and max crossing subarray
+
+	Args:
+
+		A - list - list of integers
+		low - int - index of first element
+		high - int - index of last element
+	"""
+
+	# Base case: one element in A
+	if high == low:
+		return (low, high, A[low])
+
+	mid = math.floor((low + high) / 2)
+	
+	# Recursively find max subarray on Left
+	left_low, left_high, left_sum = find_maximum_subarray(A, low, mid)
+
+	# Recursively find max subarray on Right
+	right_low, right_high, right_sum = find_maximum_subarray(A, mid + 1, high)
+
+	# Find max Crossing subarray
+	cross_low, cross_high, cross_sum = max_crossing_subarray(A, low, mid, high)
+
+	# Max on left:
+	if left_sum >= right_sum and left_sum >= cross_sum:
+		return left_low, left_high, left_sum
+
+	# Max on right:
+	if right_sum >= left_sum and right_sum >= cross_sum:
+		return right_low, right_high, right_sum
+
+	return cross_low, cross_high, cross_sum
+
+
+
 if __name__ == '__main__':
 	
 	A = [13, -3, -25, 20, -3, -16, -23, 18, 20, -7, 12, -5, -22, 15, -4, 7]
 	
 	low = 0
-	mid = len(A) // 2
-	high = len(A)
+	high = len(A) - 1
 
-	print(max_crossing_subarray(A, low, mid, high))
+	print(find_maximum_subarray(A, low, high))
+	
 
